@@ -1,0 +1,64 @@
+---
+title: "Binance Custom Order"
+author: "Ian Fayorsey"
+date: "10/18/2022"
+output: html_document
+---
+
+```{r, Packages}
+#Loading Data
+library(dplyr) 
+library(magrittr) 
+library(tidyr) 
+library(foreach)
+library(binancer)
+library(zoo)
+library(Hmisc)
+options(scipen = 999)
+```
+
+```{r, Order}
+key <- ''
+secret <- ''
+token <- 'BTC'
+amount <- 20 
+side <- 'BUY'
+
+binance_credentials(key, secret)
+binance.weight = 0
+
+
+
+symbol <- paste0(token,'BUSD')
+ticker_info <-binance_ticker_price(symbol);
+lastPrice <- ticker_info$price;lastPrice
+
+quantity <- amount/lastPrice;quantity
+
+
+filters <- binance_filters(symbol)
+
+#Set price digit constraints
+s <- filters[filterType == 'PRICE_FILTER', minPrice];s
+roundPrice <- nchar(strsplit(as.character(s), ".", fixed = T)[[1]][2]);roundPrice
+lastPrice <- round(lastPrice, roundPrice);lastPrice
+
+
+t <- filters[filterType == 'LOT_SIZE', minQty];t
+if(t < 1){
+  roundQuantity <- nchar(strsplit(as.character(t), ".", fixed = T)[[1]][[2]]);roundQuantity
+  quantity <- round(quantity, roundQuantity);quantity
+} else {
+  if (t == 1){
+    quantity <- round(quantity)
+  }
+}
+
+paste0(symbol, " will be ordered (check order type) for: $", lastPrice*quantity, " at the price of $", lastPrice, " base asset.")
+```
+
+```{r, FULL ORDER}
+binance_new_order(symbol, side = side, type = 'LIMIT', price = lastPrice, quantity = quantity, time_in_force = 'GTC', test = F)
+
+paste0(symbol, " order placed at $", lastPrice, " for total of $", lastPrice*quantity, " base asset.")
+```
