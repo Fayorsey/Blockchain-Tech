@@ -1,0 +1,59 @@
+---
+title: "Summary Portfolio"
+author: "Ian Fayorsey"
+date: "2022-10-18"
+output: html_document
+---
+
+```{r, include=FALSE, message=FALSE, echo=FALSE}
+#Loading Data
+packages <- c('dplyr', 'magrittr',  'tidyr', 'readr', 'foreach', 
+              'httr', 'binancer', 'lubridate', 'xts', 'utils', 'coinmarketcapr')
+
+# Packages loading
+suppressMessages(invisible(lapply(packages, library, character.only = TRUE)))
+
+options(scipen = 999)
+binance.weight = 0
+
+key <- ''
+secret <- ''
+binance_credentials(key, secret)
+
+
+allCoins <- binance_symbols()
+coinsUSDT <- allCoins[grepl('BUSD', allCoins)]
+coinsETH <- allCoins[grepl('ETH', allCoins)]
+coinsBNB <- allCoins[grepl('BNB', allCoins)]
+
+hodls <- binance_balances() %>% 
+  dplyr::filter(free > 0 | locked > 0);hodls
+
+holdings <- hodls
+holdings <- arrange(holdings, asset)
+currentPrice <- binance_coins_prices()
+currentPrice <- arrange(currentPrice, symbol)
+
+
+temp <- currentPrice[currentPrice$symbol %in% holdings$asset]
+colnames(temp) <- c('asset', 'usd')
+
+holdings <- holdings %>% left_join(temp)
+
+holdings$value <- holdings$total * holdings$usd
+
+holdings$value[which(is.na(holdings$value))] <-  0
+
+holdings
+
+freeAssets <- holdings %>% 
+  dplyr::filter(free > 0 & value > 10 & asset != 'BUSD');
+
+paste0("Total portfolio value: $",round(sum(portfolio$value),2))
+
+
+Sys.time()
+
+# ___________________
+```
+
