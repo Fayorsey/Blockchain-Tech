@@ -1,0 +1,40 @@
+---
+title: "Execution Snapshots"
+author: "Ian Fayorsey"
+date: "2022-10-21"
+output: html_document
+---
+
+```{r}
+library(doParallel)
+library(binancer)
+library(magrittr)
+library(ggplot2)
+library(openxlsx)
+
+data <- foreach(i = 1:2400, .combine = rbind, .verbose = T) %do% {
+  
+  temp <- binance_trades('ETHUSDT')
+  
+  Sys.sleep(.5)
+  
+  return(temp)
+}
+
+data <- data %>% unique()
+
+data %>% 
+  ggplot(aes(id, y= price, colour = is_buyer_maker))+
+  geom_point()
+
+Sys.time()
+
+
+
+write.xlsx(data, "Market Data", append = T)
+```
+
+
+ 
+
+
