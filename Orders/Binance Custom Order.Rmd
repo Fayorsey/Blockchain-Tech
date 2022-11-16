@@ -1,7 +1,7 @@
 ---
 title: "Binance Custom Order"
 author: "Ian Fayorsey"
-date: "10/18/2022"
+date: ""
 output: html_document
 ---
 
